@@ -1,0 +1,12 @@
+.git
+.env
+bin/obj
+bin/tests
+bin/cbs
+bin/cbs-cli
+bin/cbs-api
+data/*.dat
+data/*.log
+reports/*.txt
+**/__pycache__
+**/.pytest_cache

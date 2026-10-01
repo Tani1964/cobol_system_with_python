@@ -1,0 +1,16 @@
+# build output
+bin/obj/
+bin/tests/
+bin/cbs
+bin/cbs-cli
+# runtime data (regenerate with scripts/reset-data.sh)
+data/*.dat
+data/*.log
+data/*.tmp
+# generated reports
+reports/*.txt
+.env
+api/**/__pycache__/
+.pytest_cache/
+api/.pytest_cache/
+bin/cbs-api

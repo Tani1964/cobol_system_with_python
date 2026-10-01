@@ -1,0 +1,25 @@
+# ================================================================
+# sample-exceptions.txt - deliberate failures, posted after the
+# seed by reset-data.sh so that the audit trail, the failed
+# transaction report and the daily exception section have
+# realistic content. Every line below is EXPECTED to be rejected
+# (cbs-cli returns RC 4 for this file).
+# ================================================================
+# Insufficient funds (savings account has no overdraft) -> 104
+WDL|1000000013|99999.00|ATM-WITHDRAWAL|TELLER03
+# Blocked account -> 106
+DEP|1000000011|10.00|BRANCH-CASH|TELLER01
+# Same source and destination -> 105
+TRF|1000000001|1000000001|10.00|SELF-TRANSFER|TELLER02
+# Currency mismatch USD -> EUR -> 110
+TRF|1000000001|1000000005|10.00|FX-NOT-SUPPORTED|TELLER02
+# Nonexistent account -> 102
+WDL|9999999999|10.00|ATM-WITHDRAWAL|TELLER03
+# Zero amount -> 101
+DEP|1000000001|0|BRANCH-CASH|TELLER01
+# Duplicate customer ID -> 103
+CUST|C0000001|Duplicate Person|+15550100199|dup@example.com|19900101|SEED
+# Structurally malformed: amount is not numeric -> BATCH-REJECT
+DEP|1000000001|12,5O|BRANCH-CASH|TELLER01
+# Structurally malformed: wrong field count -> BATCH-REJECT
+WDL|1000000001|10.00

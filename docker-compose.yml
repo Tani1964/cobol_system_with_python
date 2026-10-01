@@ -1,0 +1,56 @@
+# COBOL Core Banking API + MongoDB (+ optional Caddy for HTTPS).
+#   cp .env.example .env   # set passwords (and DOMAIN for HTTPS)
+#   docker compose up -d --build                    # API on 127.0.0.1:8000
+#   docker compose --profile https up -d --build    # + public HTTPS
+# Run ONE replica of "api" only: the COBOL data volume is single-writer.
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:?set MONGO_USER in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?set MONGO_PASSWORD in .env}
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # no "ports": MongoDB is reachable only from the api container
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URI: ${MONGO_URI:-mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/?authSource=admin}
+      MONGO_DB: ${MONGO_DB:-cbs}
+      CBS_SEED_ON_FIRST_START: ${CBS_SEED_ON_FIRST_START:-true}
+    volumes:
+      - cbs-data:/var/lib/cbs
+    ports:
+      - "127.0.0.1:8000:8000"    # local only; Caddy publishes it
+
+  caddy:
+    image: caddy:2
+    profiles: ["https"]
+    restart: unless-stopped
+    depends_on: [api]
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env for the https profile}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  mongo-data:
+  cbs-data:
+  caddy-data:
+  caddy-config:
